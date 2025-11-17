@@ -31,6 +31,10 @@ namespace Inovatec.Vista
             tvArbol.AfterSelect += TvArbol_AfterSelect;
 
             btnBuscar.Click += btnBuscar_Click;
+
+            btnRecorrer.Click += btnRecorrer_Click;
+            btnContar.Click += btnContar_Click;
+            btnNiveles.Click += btnNiveles_Click;
         }
 
         private void TvArbol_AfterSelect(object sender, TreeViewEventArgs e)
@@ -262,6 +266,108 @@ namespace Inovatec.Vista
 
             MessageBox.Show(mensaje, "Resultado de búsqueda", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
+        }
+
+        private void btnRecorrer_Click(object sender, EventArgs e)
+        {
+            // Muestra todos los cargos (recorrido preorden) en la listbox
+            lbRecorrido.Items.Clear();
+            if (arbol == null || arbol.Raiz == null) return;
+
+            var lista = new List<string>();
+            arbol.ObtenerTodos(arbol.Raiz, lista);
+
+            foreach (var item in lista)
+                lbRecorrido.Items.Add(item);
+        }
+
+        private void btnContar_Click(object sender, EventArgs e)
+        {
+            // Actualiza los labels de conteo y niveles
+            ActualizarConteoYNiveles();
+
+            // Mostrar resultado breve al usuario
+            MessageBox.Show($"Total cargos: {lblConteo.Text}", "Conteo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnNiveles_Click(object sender, EventArgs e)
+        {
+            // Obtiene los niveles y actualiza lblCargos; además muestra un diálogo con los niveles
+            var niveles = ObtenerNiveles();
+            if (niveles == null || niveles.Count == 0)
+            {
+                lblCargos.Text = string.Empty;
+                MessageBox.Show("No hay niveles para mostrar.", "Niveles", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var partes = niveles.OrderBy(k => k.Key)
+                               .Select(k => $"Nivel {k.Key}: {k.Value}");
+            var texto = string.Join(Environment.NewLine, partes);
+
+            lblCargos.Text = texto;
+            MessageBox.Show(texto, "Niveles encontrados", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Devuelve un diccionario nivel -> cantidad de nodos en ese nivel (la raíz NO se cuenta como nivel/cargo)
+        private Dictionary<int, int> ObtenerNiveles()
+        {
+            var resultado = new Dictionary<int, int>();
+            if (arbol?.Raiz == null) return resultado;
+
+            // Iniciar la cola con los hijos de la raíz en nivel 1 para no contar la raíz
+            if (arbol.Raiz.Hijos == null || arbol.Raiz.Hijos.Count == 0) return resultado;
+
+            var cola = new Queue<Tuple<NodoJerarquico, int>>();
+            foreach (var hijoRaiz in arbol.Raiz.Hijos)
+                cola.Enqueue(Tuple.Create(hijoRaiz, 1));
+
+            while (cola.Count > 0)
+            {
+                var item = cola.Dequeue();
+                var nodo = item.Item1;
+                var nivel = item.Item2;
+
+                if (resultado.ContainsKey(nivel)) resultado[nivel]++;
+                else resultado[nivel] = 1;
+
+                if (nodo.Hijos != null)
+                {
+                    foreach (var h in nodo.Hijos)
+                        cola.Enqueue(Tuple.Create(h, nivel + 1));
+                }
+            }
+
+            return resultado;
+        }
+
+        // Actualiza lblConteo y lblCargos, excluyendo la raíz ("Innovatec") del conteo total
+        private void ActualizarConteoYNiveles()
+        {
+            if (arbol == null || arbol.Raiz == null)
+            {
+                lblConteo.Text = "0";
+                lblCargos.Text = string.Empty;
+                return;
+            }
+
+            // Lista con todos los nombres (incluye la raíz). Restamos 1 para no contarla.
+            var lista = new List<string>();
+            arbol.ObtenerTodos(arbol.Raiz, lista);
+            var totalSinRaiz = Math.Max(0, lista.Count - 1);
+            lblConteo.Text = totalSinRaiz.ToString();
+
+            // Construir texto de niveles usando ObtenerNiveles (ya excluye la raíz)
+            var niveles = ObtenerNiveles();
+            if (niveles == null || niveles.Count == 0)
+            {
+                lblCargos.Text = string.Empty;
+                return;
+            }
+
+            var partes = niveles.OrderBy(k => k.Key)
+                        .Select(k => $"Nivel {k.Key}: {k.Value}");
+            lblCargos.Text = string.Join(Environment.NewLine, partes);
         }
     }
     

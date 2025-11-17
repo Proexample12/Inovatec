@@ -158,6 +158,7 @@
             this.btnRecorrer.TabIndex = 2;
             this.btnRecorrer.Text = "Recorrido";
             this.btnRecorrer.UseVisualStyleBackColor = true;
+            this.btnRecorrer.Click += new System.EventHandler(this.btnRecorrer_Click);
             // 
             // groupBox3
             // 
@@ -188,6 +189,7 @@
             this.btnContar.TabIndex = 2;
             this.btnContar.Text = "Contar";
             this.btnContar.UseVisualStyleBackColor = true;
+            this.btnContar.Click += new System.EventHandler(this.btnContar_Click);
             // 
             // label4
             // 
@@ -227,6 +229,7 @@
             this.btnNiveles.TabIndex = 2;
             this.btnNiveles.Text = "Ver NIveles";
             this.btnNiveles.UseVisualStyleBackColor = true;
+            this.btnNiveles.Click += new System.EventHandler(this.btnNiveles_Click);
             // 
             // label6
             // 
